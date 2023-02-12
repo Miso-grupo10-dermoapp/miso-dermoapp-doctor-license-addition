@@ -7,16 +7,7 @@ def insert_item(body):
     try:
         table = client.Table('Dermoapp-sprint1-doctor-DoctorDetails-W7SV13VH080Q')
         data = table.put_item(
-            Item={
-                'id': '45678',
-                'license': '655756565',
-                'specialialties': [
-                    {
-                        "name": "dermatologist",
-                        "verified": True
-                    }
-                ]
-            }
+            Item= body
         )
         return data
     except Exception as e:
