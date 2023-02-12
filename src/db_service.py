@@ -5,7 +5,7 @@ client = boto3.resource('dynamodb')
 
 def insert_item(body):
     try:
-        table = client.Table('dermoapp-v2-Doctor-AZEUNS8HXUN1')
+        table = client.Table('Dermoapp-sprint1-doctor-DoctorDetails-W7SV13VH080Q')
         data = table.put_item(
             Item={
                 'id': '45678',
