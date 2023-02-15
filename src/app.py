@@ -21,6 +21,7 @@ def handler(event, context):
 def add_doctor_license(request, doctorId):
     parsedBody = json.loads(request["body"])
     registry = {
+        "id": doctorId,
         "doctor_id": doctorId,
         "license_number": str(parsedBody['license_number'])
     }
