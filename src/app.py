@@ -2,7 +2,7 @@ from db_service import *
 from request_validation_utils import *
 from request_response_utils import *
 
-ENV_TABLE_NAME = "Dermoapp-sprint1-doctor-DoctorDetails"
+ENV_TABLE_NAME = "Dermoapp-sprint1-doctor-DoctorDetails-W7SV13VH080Q"
 
 
 def handler(event, context):
