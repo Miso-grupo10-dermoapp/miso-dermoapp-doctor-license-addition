@@ -10,7 +10,6 @@ ENV_TABLE_NAME = "Dermoapp-sprint1-doctor-DoctorDetails-HJ34HOQYTKA6"
 
 def handler(event, context):
     try:
-        logging.INFO("lambda context " + context)
         if validate_property_exist("doctor_id", event['pathParameters']) and validate_property_exist('body', event):
             if validate_body_license(event['body']):
                 doctorID = event['pathParameters']['doctor_id']

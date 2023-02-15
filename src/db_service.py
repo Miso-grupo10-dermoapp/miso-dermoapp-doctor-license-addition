@@ -12,7 +12,7 @@ def insert_item(body):
         data = table.put_item(Item=body)
         return True
     except Exception as e:
-        raise Exception('cannot persist on db cause: ' + str(e))
+        raise RuntimeError('cannot persist on db cause: ' + str(e))
 
 
 def get_item(key, value):
@@ -28,4 +28,4 @@ def get_item(key, value):
         else:
             return []
     except Exception as e:
-        raise Exception('cannot retrieve data from db cause: ' + str(e))
+        raise RuntimeError('cannot retrieve data from db cause: ' + str(e))
