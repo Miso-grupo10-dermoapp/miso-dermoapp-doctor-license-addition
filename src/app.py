@@ -27,4 +27,3 @@ def add_doctor_license(request, doctorId):
     if insert_item(registry):
         persistedData = get_item("doctor_id", doctorId)
         return persistedData
-    return None

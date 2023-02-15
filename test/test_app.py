@@ -41,7 +41,7 @@ def data_table(aws_credentials):
 
         yield TABLE_NAME
 
-def test_givenLambdaFunctionCallThenReturnJsonResponse(lambda_environment, data_table):
+def test_givenValidImputRequestThenReturn200AndValidPersistence(lambda_environment, data_table):
 
     event = {
             "resource": "/doctor/{doctor_id}/license",
@@ -53,7 +53,7 @@ def test_givenLambdaFunctionCallThenReturnJsonResponse(lambda_environment, data_
             "body": "{\n    \"license_number\": 234353\n}",
             "isBase64Encoded": False
     }
-    response = app.handler(event, [])
+    lambdaResponse = app.handler(event, [])
 
     client = boto3.resource("dynamodb", region_name="us-east-1")
     mockTable = client.Table(TABLE_NAME)
@@ -63,8 +63,99 @@ def test_givenLambdaFunctionCallThenReturnJsonResponse(lambda_environment, data_
     items = response['Items']
     if items:
         data = items[0]
+
+    assert lambdaResponse['statusCode'] == 200
+    assert lambdaResponse['body'] ==  '{"doctor_id": "123", "license_number": "234353"}'
     assert data is not None
     assert data['doctor_id'] is not None
     assert data['license_number'] is not None
     assert data['doctor_id'] == '123'
     assert data['license_number'] == "234353"
+
+def test_givenMissingLicenseNumberOnRequestThenReturnError500(lambda_environment, data_table):
+
+    event = {
+            "resource": "/doctor/{doctor_id}/license",
+            "path": "/doctor/123/license",
+            "httpMethod": "POST",
+            "pathParameters": {
+                "doctor_id": "123"
+            },
+            "body": "{}",
+            "isBase64Encoded": False
+    }
+    lambdaResponse = app.handler(event, [])
+
+
+    assert lambdaResponse['statusCode'] == 500
+    assert lambdaResponse['body'] ==  '{"message": "cannot proceed with the request error: Input request is malformed or missing parameters, details license cannot be empty"}'
+
+def test_givenMalformedRequestOnRequestThenReturnError412(lambda_environment, data_table):
+
+    event = {
+            "resource": "/doctor/{doctor_id}/license",
+            "path": "/doctor/license",
+            "httpMethod": "POST",
+            "pathParameters": {
+            },
+            "body": "{\n    \"license_number\": 234353\n}",
+            "isBase64Encoded": False
+    }
+    lambdaResponse = app.handler(event, [])
+
+
+    assert lambdaResponse['statusCode'] == 412
+    assert lambdaResponse['body'] == '{"message": "missing or malformed request body"}'
+
+def test_givenNonValidBodyRequestThenReturnError500(lambda_environment, data_table):
+
+    event = {
+            "resource": "/doctor/{doctor_id}/license",
+            "path": "/doctor/license",
+            "httpMethod": "POST",
+            "pathParameters": {
+                "doctor_id": "123"
+            },
+            "body": "{\n    \"other_field\": 234353\n}",
+            "isBase64Encoded": False
+    }
+    lambdaResponse = app.handler(event, [])
+
+
+    assert lambdaResponse['statusCode'] == 500
+    assert lambdaResponse['body'] == '{"message": "cannot proceed with the request error: Input request is malformed or missing parameters, details license cannot be empty"}'
+
+def test_givenRequestWithoutBodyThenReturnError412(lambda_environment, data_table):
+
+    event = {
+            "resource": "/doctor/{doctor_id}/license",
+            "path": "/doctor/license",
+            "httpMethod": "POST",
+            "pathParameters": {
+                "doctor_id": "123"
+            },
+            "body": None,
+            "isBase64Encoded": False
+    }
+    lambdaResponse = app.handler(event, [])
+
+
+    assert lambdaResponse['statusCode'] == 412
+    assert lambdaResponse['body'] == '{"message": "missing or malformed request body"}'
+
+def test_givenValidRequestAndDBFailureThenReturn500(lambda_environment):
+
+    event = {
+            "resource": "/doctor/{doctor_id}/license",
+            "path": "/doctor/license",
+            "httpMethod": "POST",
+            "pathParameters": {
+                "doctor_id": "123"
+            },
+            "body": "{\n    \"license_number\": 234353\n}",
+            "isBase64Encoded": False
+    }
+    lambdaResponse = app.handler(event, [])
+
+
+    assert lambdaResponse['statusCode'] == 500
