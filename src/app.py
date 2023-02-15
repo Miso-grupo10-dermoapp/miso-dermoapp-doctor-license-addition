@@ -1,12 +1,16 @@
-from db_service import *
-from request_validation_utils import *
-from request_response_utils import *
+import logging
+import json
+
+from db_service import insert_item, get_item
+from request_validation_utils import validate_body_license, validate_property_exist
+from request_response_utils import return_error_response, return_status_ok
 
 ENV_TABLE_NAME = "Dermoapp-sprint1-doctor-DoctorDetails-HJ34HOQYTKA6"
 
 
 def handler(event, context):
     try:
+        logging.INFO("lambda context " + context)
         if validate_property_exist("doctor_id", event['pathParameters']) and validate_property_exist('body', event):
             if validate_body_license(event['body']):
                 doctorID = event['pathParameters']['doctor_id']
