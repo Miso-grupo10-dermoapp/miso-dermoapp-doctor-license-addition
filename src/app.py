@@ -22,8 +22,17 @@ def add_doctor_license(request, doctorId):
     parsedBody = json.loads(request["body"])
     registry = {
         "doctor_id": doctorId,
-        "license_number": str(parsedBody['license_number'])
+        "license_number": str(parsedBody['license_number']),
+        "status": get_status_from_license(str(parsedBody['license_number']))
     }
     if insert_item(registry):
         persistedData = get_item("doctor_id", doctorId)
         return persistedData
+
+
+def get_status_from_license(license):
+    if "-verif" in license:
+        return "Verified"
+    if "-rej" in license:
+        return "Rejected"
+    return "Pending"

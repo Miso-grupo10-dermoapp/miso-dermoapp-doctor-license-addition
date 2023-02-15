@@ -8,7 +8,7 @@ import pytest
 
 import app
 
-TABLE_NAME = "Dermoapp-sprint1-doctor-DoctorDetails"
+TABLE_NAME = "Dermoapp-sprint1-doctor-DoctorDetails-HJ34HOQYTKA6"
 @pytest.fixture
 def lambda_environment():
     os.environ[app.ENV_TABLE_NAME] = TABLE_NAME
@@ -29,7 +29,7 @@ def data_table(aws_credentials):
         client.create_table(
             AttributeDefinitions=[
                 {"AttributeName": "doctor_id", "AttributeType": "S"},
-                {"AttributeName": "license_number", "AttributeType": "S"},
+                {"AttributeName": "license_number", "AttributeType": "S"}
             ],
             TableName=TABLE_NAME,
             KeySchema=[
@@ -41,7 +41,7 @@ def data_table(aws_credentials):
 
         yield TABLE_NAME
 
-def test_givenValidImputRequestThenReturn200AndValidPersistence(lambda_environment, data_table):
+def test_givenValidInputRequestThenReturn200AndValidPersistence(lambda_environment, data_table):
 
     event = {
             "resource": "/doctor/{doctor_id}/license",
@@ -50,7 +50,7 @@ def test_givenValidImputRequestThenReturn200AndValidPersistence(lambda_environme
             "pathParameters": {
                 "doctor_id": "123"
             },
-            "body": "{\n    \"license_number\": 234353\n}",
+            "body": "{\n    \"license_number\": \"234353-verif\" \n}",
             "isBase64Encoded": False
     }
     lambdaResponse = app.handler(event, [])
@@ -65,13 +65,74 @@ def test_givenValidImputRequestThenReturn200AndValidPersistence(lambda_environme
         data = items[0]
 
     assert lambdaResponse['statusCode'] == 200
-    assert lambdaResponse['body'] ==  '{"doctor_id": "123", "license_number": "234353"}'
+    assert lambdaResponse['body'] ==  '{"doctor_id": "123", "license_number": "234353-verif", "status": "Verified"}'
+    assert data is not None
+    assert data['doctor_id'] is not None
+    assert data['license_number'] is not None
+    assert data['doctor_id'] == '123'
+    assert data['license_number'] == "234353-verif"
+
+def test_givenValidInputRequestWithRejectedStatusThenReturn200AndValidPersistence(lambda_environment, data_table):
+
+    event = {
+            "resource": "/doctor/{doctor_id}/license",
+            "path": "/doctor/123/license",
+            "httpMethod": "POST",
+            "pathParameters": {
+                "doctor_id": "123"
+            },
+            "body": "{\n    \"license_number\": \"234353-rej\" \n}",
+            "isBase64Encoded": False
+    }
+    lambdaResponse = app.handler(event, [])
+
+    client = boto3.resource("dynamodb", region_name="us-east-1")
+    mockTable = client.Table(TABLE_NAME)
+    response = mockTable.query(
+        KeyConditionExpression= Key('doctor_id').eq('123')
+    )
+    items = response['Items']
+    if items:
+        data = items[0]
+
+    assert lambdaResponse['statusCode'] == 200
+    assert lambdaResponse['body'] ==  '{"doctor_id": "123", "license_number": "234353-rej", "status": "Rejected"}'
+    assert data is not None
+    assert data['doctor_id'] is not None
+    assert data['license_number'] is not None
+    assert data['doctor_id'] == '123'
+    assert data['license_number'] == "234353-rej"
+
+def test_givenValidInputRequestWithRejectedStatusThenReturn200AndValidPersistence(lambda_environment, data_table):
+
+    event = {
+            "resource": "/doctor/{doctor_id}/license",
+            "path": "/doctor/123/license",
+            "httpMethod": "POST",
+            "pathParameters": {
+                "doctor_id": "123"
+            },
+            "body": "{\n    \"license_number\": \"234353\" \n}",
+            "isBase64Encoded": False
+    }
+    lambdaResponse = app.handler(event, [])
+
+    client = boto3.resource("dynamodb", region_name="us-east-1")
+    mockTable = client.Table(TABLE_NAME)
+    response = mockTable.query(
+        KeyConditionExpression= Key('doctor_id').eq('123')
+    )
+    items = response['Items']
+    if items:
+        data = items[0]
+
+    assert lambdaResponse['statusCode'] == 200
+    assert lambdaResponse['body'] ==  '{"doctor_id": "123", "license_number": "234353", "status": "Pending"}'
     assert data is not None
     assert data['doctor_id'] is not None
     assert data['license_number'] is not None
     assert data['doctor_id'] == '123'
     assert data['license_number'] == "234353"
-
 def test_givenMissingLicenseNumberOnRequestThenReturnError500(lambda_environment, data_table):
 
     event = {
@@ -98,7 +159,7 @@ def test_givenMalformedRequestOnRequestThenReturnError412(lambda_environment, da
             "httpMethod": "POST",
             "pathParameters": {
             },
-            "body": "{\n    \"license_number\": 234353\n}",
+            "body": "{\n    \"license_number\": \"234353\" \n}",
             "isBase64Encoded": False
     }
     lambdaResponse = app.handler(event, [])
