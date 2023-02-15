@@ -2,7 +2,7 @@ from db_service import *
 from request_validation_utils import *
 from request_response_utils import *
 
-ENV_TABLE_NAME = "Dermoapp-sprint1-doctor-DoctorDetails-W7SV13VH080Q"
+ENV_TABLE_NAME = "Dermoapp-sprint1-doctor-DoctorDetails-HJ34HOQYTKA6"
 
 
 def handler(event, context):
@@ -21,7 +21,6 @@ def handler(event, context):
 def add_doctor_license(request, doctorId):
     parsedBody = json.loads(request["body"])
     registry = {
-        "id": doctorId,
         "doctor_id": doctorId,
         "license_number": str(parsedBody['license_number'])
     }
