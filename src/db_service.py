@@ -9,7 +9,7 @@ def insert_item(body):
     try:
         client = boto3.resource("dynamodb")
         table = client.Table(app.ENV_TABLE_NAME)
-        data = table.put_item(Item=body)
+        table.put_item(Item=body)
         return True
     except Exception as e:
         raise RuntimeError('cannot persist on db cause: ' + str(e))

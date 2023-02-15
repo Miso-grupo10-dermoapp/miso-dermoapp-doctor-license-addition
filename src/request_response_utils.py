@@ -1,20 +1,20 @@
 import json
 
 
-def return_error_response(errorMessage, httpCode):
+def return_error_response(error_message, http_code):
     return {
-        "statusCode": httpCode,
+        "statusCode": http_code,
         "body": json.dumps(
             {
-                "message": errorMessage
+                "message": error_message
             }
         ),
     }
 
 
-def return_status_ok(responseBody):
+def return_status_ok(response_body):
     return {
         "statusCode": 200,
-        "body": json.dumps(responseBody),
+        "body": json.dumps(response_body),
     }
 
