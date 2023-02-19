@@ -1,36 +1,31 @@
 import boto3
+from boto3.dynamodb.conditions import Key
 
-client = boto3.resource('dynamodb')
+import app
 
 
 def insert_item(body):
+
     try:
-        table = client.Table('dermoapp-v2-Doctor-AZEUNS8HXUN1')
-        data = table.put_item(
-            Item={
-                'id': '45678',
-                'license': '655756565',
-                'specialialties': [
-                    {
-                        "name": "dermatologist",
-                        "verified": True
-                    }
-                ]
-            }
-        )
-        return data
+        client = boto3.resource("dynamodb")
+        table = client.Table(app.ENV_TABLE_NAME)
+        table.put_item(Item=body)
+        return True
     except Exception as e:
-        return 'cannot persist on db cause: ' + str(e)
+        raise RuntimeError('cannot persist on db cause: ' + str(e))
 
 
-def get_item():
+def get_item(key, value):
+    client = boto3.resource('dynamodb')
     try:
-        table = client.Table('dermoapp-v2-Doctor-AZEUNS8HXUN1')
-        data = table.get_item(
-            Key={
-                'id': '123sdsdsd'
-            }
+        table = client.Table(app.ENV_TABLE_NAME)
+        response = table.query(
+            KeyConditionExpression=Key(key).eq(value)
         )
-        return data
+        items = response['Items']
+        if items:
+            return items[0]
+        else:
+            return []
     except Exception as e:
-        return 'cannot persist on db cause: ' + str(e)
+        raise RuntimeError('cannot retrieve data from db cause: ' + str(e))
